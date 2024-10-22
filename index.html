@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Todo Application</title>
+    <style>
+        body { font-family: Arial, sans-serif; }
+        ul { list-style-type: none; padding: 0; }
+        li { padding: 8px; border-bottom: 1px solid #ccc; }
+        .completed { text-decoration: line-through; }
+    </style>
+</head>
+<body>
+    <h1>Todo List</h1>
+    <input id="todoInput" type="text" placeholder="Add a new todo">
+    <button onclick="addTodo()">Add Todo</button>
+    <ul id="todoList"></ul>
+
+    <script>
+        async function fetchTodos() {
+            const response = await fetch('http://localhost:3000/todos');
+            const todos = await response.json();
+            const todoList = document.getElementById('todoList');
+            todoList.innerHTML = '';
+            todos.forEach(todo => {
+                const li = document.createElement('li');
+                li.textContent = todo.text;
+                if (todo.completed) li.classList.add('completed');
+                li.onclick = () => toggleTodo(todo.id);
+                todoList.appendChild(li);
+            });
+        }
+
+        async function addTodo() {
+            const input = document.getElementById('todoInput');
+            const text = input.value;
+            if (text) {
+                await fetch('http://localhost:3000/todos', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ text })
+                });
+                input.value = '';
+                fetchTodos();
+            }
+        }
+
+        async function toggleTodo(id) {
+            await fetch(`http://localhost:3000/todos/${id}`, { method: 'PATCH' });
+            fetchTodos();
+        }
+
+        // Initial fetch
+        fetchTodos();
+    </script>
+</body>
+</html>
